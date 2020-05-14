@@ -1,0 +1,3134 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Yuwan Guo" />
+    <meta name="description" content="Describe your website">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>SDS348 Project 1: Exploratory Data Analysis with Tidyverse Tools</title>
+    <meta name="generator" content="Hugo 0.70.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+      <div class="container">
+        <div class="blog-post">
+          <h3>
+            <strong><a href="/project1/">SDS348 Project 1: Exploratory Data Analysis with Tidyverse Tools</a></strong>
+          </h3>
+        </div>
+        <div class="blog-title">
+          <h4>
+          March 15, 2020
+            &nbsp;&nbsp;
+            
+          </h4>
+        </div>
+        <div class="panel panel-default">
+          <div class="panel-body">
+            <div class="blogpost">
+              
+<script src="/rmarkdown-libs/kePrint/kePrint.js"></script>
+
+
+<div id="introduction" class="section level4">
+<h4>0. Introduction</h4>
+<p><em>I have chosen the COVID-19 confirmed cases, deaths, and recovered datasets. As the novel coronavirus spreads to the U.S. and is recently considered a pandemic by WHO, it is important that we continuously monitor the nubmer of cases confirmed, the number of deaths, and the nubmer of recovered everyday. The Johns Hopkins University has been doing a great job in keeping track of the number of confirmed cases and deaths everyday and has been updating the datasets on this website: <a href="https://data.humdata.org/dataset/novel-coronavirus-2019-ncov-cases" class="uri">https://data.humdata.org/dataset/novel-coronavirus-2019-ncov-cases</a></em></p>
+<p><em>The COVID-19 confirmed cases dataset has 442 observations and 57 columns. The dataset is long and untidy. The variables include countries/regions, provinces/states, the respective latitude and longitude, and the cumulative nubmer of cases from 1/22/2019 to 3/14/2020. Since each date is a column, the dataset is very long. I plan to convert the dataset to a wide dataset so that every observation has its own row and every variable its own column.</em></p>
+<p><em>Similarly, the COVID-19 deaths and recovered datasets both have 442 observations and 57 columns. The datasets are both long and untidy. Since these three datasets have countries/states in common, I plan to join these three datasets together.</em></p>
+</div>
+<div id="tidying-rearranging-widelong" class="section level4">
+<h4>1. Tidying: Rearranging Wide/Long</h4>
+<pre class="r"><code>library(tidyverse)
+library(stringr)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(extrafont)
+library(ggthemes)
+library(ggmap)
+library(maps)
+library(mapdata)
+library(plotly)
+library(cluster)
+library(factoextra)
+print(getwd())</code></pre>
+<pre><code>## [1] &quot;C:/Users/yg7569/Desktop/UT Austin 2019-2020 course materials/Computational bio&amp;bioinformatics Spring 2020/week 15/Website/content&quot;</code></pre>
+<pre class="r"><code>## read csv files
+covid19_confirmed &lt;- read.csv(&quot;COVID19 confirmed.csv&quot;)
+covid19_death &lt;- read.csv(&quot;COVID19 deaths.csv&quot;)
+covid19_recover &lt;- read.csv(&quot;COVID19 recovered.csv&quot;)
+
+covid19_confirmed &lt;- as.data.frame(covid19_confirmed)
+covid19_death &lt;- as.data.frame(covid19_death)
+covid19_recover &lt;- as.data.frame(covid19_recover)</code></pre>
+<pre class="r"><code>## Rename some columns and tidy covid19_confirmed dataset
+colnames(covid19_confirmed)</code></pre>
+<pre><code>##  [1] &quot;Province.State&quot; &quot;Country.Region&quot; &quot;Lat&quot;            &quot;Long&quot;          
+##  [5] &quot;X1.22.20&quot;       &quot;X1.23.20&quot;       &quot;X1.24.20&quot;       &quot;X1.25.20&quot;      
+##  [9] &quot;X1.26.20&quot;       &quot;X1.27.20&quot;       &quot;X1.28.20&quot;       &quot;X1.29.20&quot;      
+## [13] &quot;X1.30.20&quot;       &quot;X1.31.20&quot;       &quot;X2.1.20&quot;        &quot;X2.2.20&quot;       
+## [17] &quot;X2.3.20&quot;        &quot;X2.4.20&quot;        &quot;X2.5.20&quot;        &quot;X2.6.20&quot;       
+## [21] &quot;X2.7.20&quot;        &quot;X2.8.20&quot;        &quot;X2.9.20&quot;        &quot;X2.10.20&quot;      
+## [25] &quot;X2.11.20&quot;       &quot;X2.12.20&quot;       &quot;X2.13.20&quot;       &quot;X2.14.20&quot;      
+## [29] &quot;X2.15.20&quot;       &quot;X2.16.20&quot;       &quot;X2.17.20&quot;       &quot;X2.18.20&quot;      
+## [33] &quot;X2.19.20&quot;       &quot;X2.20.20&quot;       &quot;X2.21.20&quot;       &quot;X2.22.20&quot;      
+## [37] &quot;X2.23.20&quot;       &quot;X2.24.20&quot;       &quot;X2.25.20&quot;       &quot;X2.26.20&quot;      
+## [41] &quot;X2.27.20&quot;       &quot;X2.28.20&quot;       &quot;X2.29.20&quot;       &quot;X3.1.20&quot;       
+## [45] &quot;X3.2.20&quot;        &quot;X3.3.20&quot;        &quot;X3.4.20&quot;        &quot;X3.5.20&quot;       
+## [49] &quot;X3.6.20&quot;        &quot;X3.7.20&quot;        &quot;X3.8.20&quot;        &quot;X3.9.20&quot;       
+## [53] &quot;X3.10.20&quot;       &quot;X3.11.20&quot;       &quot;X3.12.20&quot;       &quot;X3.13.20&quot;      
+## [57] &quot;X3.14.20&quot;</code></pre>
+<pre class="r"><code>covid19_confirmed &lt;- covid19_confirmed %&gt;% rename_at(vars(starts_with(&quot;X&quot;)), 
+    funs(str_replace(., &quot;X&quot;, &quot;&quot;)))
+
+covid19_confirmed &lt;- rename(covid19_confirmed, `Province/State` = &quot;Province.State&quot;, 
+    `Country/Region` = &quot;Country.Region&quot;, Latitude = &quot;Lat&quot;, Longitude = &quot;Long&quot;)
+
+covid19_confirmed &lt;- covid19_confirmed %&gt;% pivot_longer(cols = c(&quot;1.22.20&quot;:&quot;3.14.20&quot;), 
+    names_to = &quot;Date&quot;, values_to = &quot;Confirmed Cases&quot;)
+
+glimpse(covid19_confirmed)</code></pre>
+<pre><code>## Observations: 23,426
+## Variables: 6
+## $ `Province/State`  &lt;fct&gt; , , , , , , , , , , , , , , , , , , , , , , , , , 
+## $ `Country/Region`  &lt;fct&gt; Thailand, Thailand, Thailand, Thailand, Thailand,...
+## $ Latitude          &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 1...
+## $ Longitude         &lt;dbl&gt; 101, 101, 101, 101, 101, 101, 101, 101, 101, 101,...
+## $ Date              &lt;chr&gt; &quot;1.22.20&quot;, &quot;1.23.20&quot;, &quot;1.24.20&quot;, &quot;1.25.20&quot;, &quot;1.26...
+## $ `Confirmed Cases` &lt;int&gt; 2, 3, 5, 7, 8, 8, 14, 14, 14, 19, 19, 19, 19, 25,...</code></pre>
+<pre class="r"><code>## Rename some columns and tidy covid19_death dataset
+colnames(covid19_death)</code></pre>
+<pre><code>##  [1] &quot;Province.State&quot; &quot;Country.Region&quot; &quot;Lat&quot;            &quot;Long&quot;          
+##  [5] &quot;X1.22.20&quot;       &quot;X1.23.20&quot;       &quot;X1.24.20&quot;       &quot;X1.25.20&quot;      
+##  [9] &quot;X1.26.20&quot;       &quot;X1.27.20&quot;       &quot;X1.28.20&quot;       &quot;X1.29.20&quot;      
+## [13] &quot;X1.30.20&quot;       &quot;X1.31.20&quot;       &quot;X2.1.20&quot;        &quot;X2.2.20&quot;       
+## [17] &quot;X2.3.20&quot;        &quot;X2.4.20&quot;        &quot;X2.5.20&quot;        &quot;X2.6.20&quot;       
+## [21] &quot;X2.7.20&quot;        &quot;X2.8.20&quot;        &quot;X2.9.20&quot;        &quot;X2.10.20&quot;      
+## [25] &quot;X2.11.20&quot;       &quot;X2.12.20&quot;       &quot;X2.13.20&quot;       &quot;X2.14.20&quot;      
+## [29] &quot;X2.15.20&quot;       &quot;X2.16.20&quot;       &quot;X2.17.20&quot;       &quot;X2.18.20&quot;      
+## [33] &quot;X2.19.20&quot;       &quot;X2.20.20&quot;       &quot;X2.21.20&quot;       &quot;X2.22.20&quot;      
+## [37] &quot;X2.23.20&quot;       &quot;X2.24.20&quot;       &quot;X2.25.20&quot;       &quot;X2.26.20&quot;      
+## [41] &quot;X2.27.20&quot;       &quot;X2.28.20&quot;       &quot;X2.29.20&quot;       &quot;X3.1.20&quot;       
+## [45] &quot;X3.2.20&quot;        &quot;X3.3.20&quot;        &quot;X3.4.20&quot;        &quot;X3.5.20&quot;       
+## [49] &quot;X3.6.20&quot;        &quot;X3.7.20&quot;        &quot;X3.8.20&quot;        &quot;X3.9.20&quot;       
+## [53] &quot;X3.10.20&quot;       &quot;X3.11.20&quot;       &quot;X3.12.20&quot;       &quot;X3.13.20&quot;      
+## [57] &quot;X3.14.20&quot;</code></pre>
+<pre class="r"><code>covid19_death &lt;- covid19_death %&gt;% rename_at(vars(starts_with(&quot;X&quot;)), 
+    funs(str_replace(., &quot;X&quot;, &quot;&quot;)))
+
+covid19_death &lt;- rename(covid19_death, `Province/State` = &quot;Province.State&quot;, 
+    `Country/Region` = &quot;Country.Region&quot;, Latitude = &quot;Lat&quot;, Longitude = &quot;Long&quot;)
+
+covid19_death &lt;- covid19_death %&gt;% pivot_longer(cols = c(&quot;1.22.20&quot;:&quot;3.14.20&quot;), 
+    names_to = &quot;Date&quot;, values_to = &quot;Deaths&quot;)
+
+glimpse(covid19_death)</code></pre>
+<pre><code>## Observations: 23,426
+## Variables: 6
+## $ `Province/State` &lt;fct&gt; , , , , , , , , , , , , , , , , , , , , , , , , , 
+## $ `Country/Region` &lt;fct&gt; Thailand, Thailand, Thailand, Thailand, Thailand, ...
+## $ Latitude         &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15...
+## $ Longitude        &lt;dbl&gt; 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, ...
+## $ Date             &lt;chr&gt; &quot;1.22.20&quot;, &quot;1.23.20&quot;, &quot;1.24.20&quot;, &quot;1.25.20&quot;, &quot;1.26....
+## $ Deaths           &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,...</code></pre>
+<pre class="r"><code>## Rename some columns and tidy covid19_recover dataset
+colnames(covid19_recover)</code></pre>
+<pre><code>##  [1] &quot;Province.State&quot; &quot;Country.Region&quot; &quot;Lat&quot;            &quot;Long&quot;          
+##  [5] &quot;X1.22.20&quot;       &quot;X1.23.20&quot;       &quot;X1.24.20&quot;       &quot;X1.25.20&quot;      
+##  [9] &quot;X1.26.20&quot;       &quot;X1.27.20&quot;       &quot;X1.28.20&quot;       &quot;X1.29.20&quot;      
+## [13] &quot;X1.30.20&quot;       &quot;X1.31.20&quot;       &quot;X2.1.20&quot;        &quot;X2.2.20&quot;       
+## [17] &quot;X2.3.20&quot;        &quot;X2.4.20&quot;        &quot;X2.5.20&quot;        &quot;X2.6.20&quot;       
+## [21] &quot;X2.7.20&quot;        &quot;X2.8.20&quot;        &quot;X2.9.20&quot;        &quot;X2.10.20&quot;      
+## [25] &quot;X2.11.20&quot;       &quot;X2.12.20&quot;       &quot;X2.13.20&quot;       &quot;X2.14.20&quot;      
+## [29] &quot;X2.15.20&quot;       &quot;X2.16.20&quot;       &quot;X2.17.20&quot;       &quot;X2.18.20&quot;      
+## [33] &quot;X2.19.20&quot;       &quot;X2.20.20&quot;       &quot;X2.21.20&quot;       &quot;X2.22.20&quot;      
+## [37] &quot;X2.23.20&quot;       &quot;X2.24.20&quot;       &quot;X2.25.20&quot;       &quot;X2.26.20&quot;      
+## [41] &quot;X2.27.20&quot;       &quot;X2.28.20&quot;       &quot;X2.29.20&quot;       &quot;X3.1.20&quot;       
+## [45] &quot;X3.2.20&quot;        &quot;X3.3.20&quot;        &quot;X3.4.20&quot;        &quot;X3.5.20&quot;       
+## [49] &quot;X3.6.20&quot;        &quot;X3.7.20&quot;        &quot;X3.8.20&quot;        &quot;X3.9.20&quot;       
+## [53] &quot;X3.10.20&quot;       &quot;X3.11.20&quot;       &quot;X3.12.20&quot;       &quot;X3.13.20&quot;      
+## [57] &quot;X3.14.20&quot;</code></pre>
+<pre class="r"><code>covid19_recover &lt;- covid19_recover %&gt;% rename_at(vars(starts_with(&quot;X&quot;)), 
+    funs(str_replace(., &quot;X&quot;, &quot;&quot;)))
+
+covid19_recover &lt;- rename(covid19_recover, `Province/State` = &quot;Province.State&quot;, 
+    `Country/Region` = &quot;Country.Region&quot;, Latitude = &quot;Lat&quot;, Longitude = &quot;Long&quot;)
+
+covid19_recover &lt;- covid19_recover %&gt;% pivot_longer(cols = c(&quot;1.22.20&quot;:&quot;3.14.20&quot;), 
+    names_to = &quot;Date&quot;, values_to = &quot;Recovered&quot;)
+
+glimpse(covid19_recover)</code></pre>
+<pre><code>## Observations: 23,426
+## Variables: 6
+## $ `Province/State` &lt;fct&gt; , , , , , , , , , , , , , , , , , , , , , , , , , 
+## $ `Country/Region` &lt;fct&gt; Thailand, Thailand, Thailand, Thailand, Thailand, ...
+## $ Latitude         &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15...
+## $ Longitude        &lt;dbl&gt; 101, 101, 101, 101, 101, 101, 101, 101, 101, 101, ...
+## $ Date             &lt;chr&gt; &quot;1.22.20&quot;, &quot;1.23.20&quot;, &quot;1.24.20&quot;, &quot;1.25.20&quot;, &quot;1.26....
+## $ Recovered        &lt;int&gt; 0, 0, 0, 0, 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5,...</code></pre>
+<p><em>Firstly, I read the csv datasets that I downloaded. Then after I took a look at the column names, I changed some column names into my prefered names. Finally, I used ‘pivot_longer’ to convert a wide dataset to a long dataset with every observation having its own row and every variable its own column.</em></p>
+<p><em>After converting the wide dataset to a long dataset, the new dataset contains 6 variables, including Province/State, Country/Region, respective latitude and longtitude, date, and cases. The total observations for each dataset is 23426.</em></p>
+</div>
+<div id="joiningmerging" class="section level4">
+<h4>2. Joining/Merging</h4>
+<pre class="r"><code>## Firstly, join covid19_confirmed and covid19_death
+joined_1 &lt;- full_join(covid19_confirmed, covid19_death, by = NULL)
+
+glimpse(joined_1)</code></pre>
+<pre><code>## Observations: 23,426
+## Variables: 7
+## $ `Province/State`  &lt;fct&gt; , , , , , , , , , , , , , , , , , , , , , , , , , 
+## $ `Country/Region`  &lt;fct&gt; Thailand, Thailand, Thailand, Thailand, Thailand,...
+## $ Latitude          &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 1...
+## $ Longitude         &lt;dbl&gt; 101, 101, 101, 101, 101, 101, 101, 101, 101, 101,...
+## $ Date              &lt;chr&gt; &quot;1.22.20&quot;, &quot;1.23.20&quot;, &quot;1.24.20&quot;, &quot;1.25.20&quot;, &quot;1.26...
+## $ `Confirmed Cases` &lt;int&gt; 2, 3, 5, 7, 8, 8, 14, 14, 14, 19, 19, 19, 19, 25,...
+## $ Deaths            &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...</code></pre>
+<pre class="r"><code>## Secondly, join joined_1 and covid19_recover
+fulldata &lt;- full_join(joined_1, covid19_recover, by = NULL)
+
+glimpse(fulldata)</code></pre>
+<pre><code>## Observations: 23,426
+## Variables: 8
+## $ `Province/State`  &lt;fct&gt; , , , , , , , , , , , , , , , , , , , , , , , , , 
+## $ `Country/Region`  &lt;fct&gt; Thailand, Thailand, Thailand, Thailand, Thailand,...
+## $ Latitude          &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 1...
+## $ Longitude         &lt;dbl&gt; 101, 101, 101, 101, 101, 101, 101, 101, 101, 101,...
+## $ Date              &lt;chr&gt; &quot;1.22.20&quot;, &quot;1.23.20&quot;, &quot;1.24.20&quot;, &quot;1.25.20&quot;, &quot;1.26...
+## $ `Confirmed Cases` &lt;int&gt; 2, 3, 5, 7, 8, 8, 14, 14, 14, 19, 19, 19, 19, 25,...
+## $ Deaths            &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ Recovered         &lt;int&gt; 0, 0, 0, 0, 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5...</code></pre>
+<p><em>Since I have three datasets, I firstly joined covid19_confirmed dataset with covid19_death dataset, and then joined the combinded dataset with covid19_recover dataset. Since these three datasets have the same number of observations and columns, I could use either ‘left_join’, ‘right_join’, ‘inner_join’, or ‘full_join’. Therefore, I chose ‘full_join’, but all four join methods will result in the same combined dataset. No cases were dropped.</em></p>
+<p><em>Since “Province/State”, “Country/Region”, “Latitude”, “Longitude”, and “Date” are all common variables among these three datasets, I used ‘by=Null’ so that ‘full_join’ would do a natural join using all variables with common names across the two datasets. In fact, this is the only way that works for my datasets. I attempted using by=“Date” and by=“Country/Region”, but neither of these resulted in the desired merged dataset because when I specify by which variable to join, R identifies other variables as different, and duplicate the same columns.</em></p>
+</div>
+<div id="wrangling" class="section level4">
+<h4>3. Wrangling</h4>
+<pre class="r"><code>## using mutate to add % death and % recovered for each
+## country everyday
+fulldata &lt;- fulldata %&gt;% mutate(`% death` = 100 * Deaths/`Confirmed Cases`, 
+    `% recovered` = 100 * Recovered/`Confirmed Cases`) %&gt;% mutate_at(vars(`% death`, 
+    `% recovered`), funs(round(., 2)))
+
+glimpse(fulldata)</code></pre>
+<pre><code>## Observations: 23,426
+## Variables: 10
+## $ `Province/State`  &lt;fct&gt; , , , , , , , , , , , , , , , , , , , , , , , , , 
+## $ `Country/Region`  &lt;fct&gt; Thailand, Thailand, Thailand, Thailand, Thailand,...
+## $ Latitude          &lt;dbl&gt; 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 15, 1...
+## $ Longitude         &lt;dbl&gt; 101, 101, 101, 101, 101, 101, 101, 101, 101, 101,...
+## $ Date              &lt;chr&gt; &quot;1.22.20&quot;, &quot;1.23.20&quot;, &quot;1.24.20&quot;, &quot;1.25.20&quot;, &quot;1.26...
+## $ `Confirmed Cases` &lt;int&gt; 2, 3, 5, 7, 8, 8, 14, 14, 14, 19, 19, 19, 19, 25,...
+## $ Deaths            &lt;int&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ Recovered         &lt;int&gt; 0, 0, 0, 0, 2, 2, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5...
+## $ `% death`         &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0...
+## $ `% recovered`     &lt;dbl&gt; 0.00, 0.00, 0.00, 0.00, 25.00, 25.00, 35.71, 35.7...</code></pre>
+<pre class="r"><code>## using filter, select, and arrange to grab China&#39;s and
+## America&#39;s stats
+China &lt;- fulldata %&gt;% filter(`Country/Region` == &quot;China&quot;) %&gt;% 
+    select(-Longitude, -Latitude)
+
+## 3/14/2020 cumulative &amp; current cases in China
+China_03142020 &lt;- China %&gt;% filter(Date == &quot;3.14.20&quot;) %&gt;% arrange(desc(`Confirmed Cases`)) %&gt;% 
+    mutate(`Current cases` = `Confirmed Cases` - Deaths - Recovered)
+
+kable(China_03142020, booktabs = T, row.names = F, caption = &quot;Table 1: China&#39;s cumulative and current (03/14/2020) confirmed cases, deaths, and recovered by province&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-4">Table 1: </span>Table 1: China’s cumulative and current (03/14/2020) confirmed cases, deaths, and recovered by province
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Province/State
+</th>
+<th style="text-align:left;">
+Country/Region
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:right;">
+Confirmed Cases
+</th>
+<th style="text-align:right;">
+Deaths
+</th>
+<th style="text-align:right;">
+Recovered
+</th>
+<th style="text-align:right;">
+% death
+</th>
+<th style="text-align:right;">
+% recovered
+</th>
+<th style="text-align:right;">
+Current cases
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Hubei
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+67790
+</td>
+<td style="text-align:right;">
+3075
+</td>
+<td style="text-align:right;">
+52960
+</td>
+<td style="text-align:right;">
+4.54
+</td>
+<td style="text-align:right;">
+78.12
+</td>
+<td style="text-align:right;">
+11755
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guangdong
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+1356
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+1299
+</td>
+<td style="text-align:right;">
+0.59
+</td>
+<td style="text-align:right;">
+95.80
+</td>
+<td style="text-align:right;">
+49
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Henan
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+1273
+</td>
+<td style="text-align:right;">
+22
+</td>
+<td style="text-align:right;">
+1250
+</td>
+<td style="text-align:right;">
+1.73
+</td>
+<td style="text-align:right;">
+98.19
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Zhejiang
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+1227
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+1211
+</td>
+<td style="text-align:right;">
+0.08
+</td>
+<td style="text-align:right;">
+98.70
+</td>
+<td style="text-align:right;">
+15
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hunan
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+1018
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+1014
+</td>
+<td style="text-align:right;">
+0.39
+</td>
+<td style="text-align:right;">
+99.61
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Anhui
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+990
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+984
+</td>
+<td style="text-align:right;">
+0.61
+</td>
+<td style="text-align:right;">
+99.39
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Jiangxi
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+935
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+934
+</td>
+<td style="text-align:right;">
+0.11
+</td>
+<td style="text-align:right;">
+99.89
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Shandong
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+760
+</td>
+<td style="text-align:right;">
+7
+</td>
+<td style="text-align:right;">
+741
+</td>
+<td style="text-align:right;">
+0.92
+</td>
+<td style="text-align:right;">
+97.50
+</td>
+<td style="text-align:right;">
+12
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Jiangsu
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+631
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+630
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+99.84
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Chongqing
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+576
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+569
+</td>
+<td style="text-align:right;">
+1.04
+</td>
+<td style="text-align:right;">
+98.78
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Sichuan
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+539
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+511
+</td>
+<td style="text-align:right;">
+0.56
+</td>
+<td style="text-align:right;">
+94.81
+</td>
+<td style="text-align:right;">
+25
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Heilongjiang
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+482
+</td>
+<td style="text-align:right;">
+13
+</td>
+<td style="text-align:right;">
+447
+</td>
+<td style="text-align:right;">
+2.70
+</td>
+<td style="text-align:right;">
+92.74
+</td>
+<td style="text-align:right;">
+22
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Beijing
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+437
+</td>
+<td style="text-align:right;">
+8
+</td>
+<td style="text-align:right;">
+349
+</td>
+<td style="text-align:right;">
+1.83
+</td>
+<td style="text-align:right;">
+79.86
+</td>
+<td style="text-align:right;">
+80
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Shanghai
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+353
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+324
+</td>
+<td style="text-align:right;">
+0.85
+</td>
+<td style="text-align:right;">
+91.78
+</td>
+<td style="text-align:right;">
+26
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hebei
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+318
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+310
+</td>
+<td style="text-align:right;">
+1.89
+</td>
+<td style="text-align:right;">
+97.48
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Fujian
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+296
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+295
+</td>
+<td style="text-align:right;">
+0.34
+</td>
+<td style="text-align:right;">
+99.66
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guangxi
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+252
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+243
+</td>
+<td style="text-align:right;">
+0.79
+</td>
+<td style="text-align:right;">
+96.43
+</td>
+<td style="text-align:right;">
+7
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Shaanxi
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+245
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+232
+</td>
+<td style="text-align:right;">
+0.82
+</td>
+<td style="text-align:right;">
+94.69
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Yunnan
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+174
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+172
+</td>
+<td style="text-align:right;">
+1.15
+</td>
+<td style="text-align:right;">
+98.85
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hainan
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+168
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+160
+</td>
+<td style="text-align:right;">
+3.57
+</td>
+<td style="text-align:right;">
+95.24
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Guizhou
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+146
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+143
+</td>
+<td style="text-align:right;">
+1.37
+</td>
+<td style="text-align:right;">
+97.95
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Hong Kong
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+140
+</td>
+<td style="text-align:right;">
+4
+</td>
+<td style="text-align:right;">
+78
+</td>
+<td style="text-align:right;">
+2.86
+</td>
+<td style="text-align:right;">
+55.71
+</td>
+<td style="text-align:right;">
+58
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tianjin
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+136
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+132
+</td>
+<td style="text-align:right;">
+2.21
+</td>
+<td style="text-align:right;">
+97.06
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Shanxi
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+133
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+133
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+100.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Gansu
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+129
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+89
+</td>
+<td style="text-align:right;">
+1.55
+</td>
+<td style="text-align:right;">
+68.99
+</td>
+<td style="text-align:right;">
+38
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Liaoning
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+125
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+113
+</td>
+<td style="text-align:right;">
+0.80
+</td>
+<td style="text-align:right;">
+90.40
+</td>
+<td style="text-align:right;">
+11
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Jilin
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+93
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+91
+</td>
+<td style="text-align:right;">
+1.08
+</td>
+<td style="text-align:right;">
+97.85
+</td>
+<td style="text-align:right;">
+1
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Xinjiang
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+76
+</td>
+<td style="text-align:right;">
+3
+</td>
+<td style="text-align:right;">
+73
+</td>
+<td style="text-align:right;">
+3.95
+</td>
+<td style="text-align:right;">
+96.05
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Inner Mongolia
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+71
+</td>
+<td style="text-align:right;">
+1.33
+</td>
+<td style="text-align:right;">
+94.67
+</td>
+<td style="text-align:right;">
+3
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Ningxia
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+75
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+73
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+97.33
+</td>
+<td style="text-align:right;">
+2
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Qinghai
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+100.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Macau
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+10
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+100.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Tibet
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+100.00
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>Chinasummary &lt;- China_03142020 %&gt;% summarize(`Total cumulative confirmed cases` = sum(`Confirmed Cases`), 
+    `Total deaths` = sum(Deaths), `Total recovered` = sum(Recovered)) %&gt;% 
+    mutate(`Total current cases` = `Total cumulative confirmed cases` - 
+        `Total deaths` - `Total recovered`, `% Death` = 100 * 
+        `Total deaths`/`Total cumulative confirmed cases`, `% Recovery` = 100 * 
+        `Total recovered`/`Total cumulative confirmed cases`) %&gt;% 
+    mutate_at(vars(`% Death`, `% Recovery`), funs(round(., 2)))
+
+kable(Chinasummary, booktabs = T, row.names = F, caption = &quot;Table 2: Summary of China&#39;s cumulative and current cases, deaths, and recovery as of 3/14/20&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-4">Table 1: </span>Table 2: Summary of China’s cumulative and current cases, deaths, and recovery as of 3/14/20
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+Total cumulative confirmed cases
+</th>
+<th style="text-align:right;">
+Total deaths
+</th>
+<th style="text-align:right;">
+Total recovered
+</th>
+<th style="text-align:right;">
+Total current cases
+</th>
+<th style="text-align:right;">
+% Death
+</th>
+<th style="text-align:right;">
+% Recovery
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+80977
+</td>
+<td style="text-align:right;">
+3193
+</td>
+<td style="text-align:right;">
+65660
+</td>
+<td style="text-align:right;">
+12124
+</td>
+<td style="text-align:right;">
+3.94
+</td>
+<td style="text-align:right;">
+81.08
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>US &lt;- fulldata %&gt;% filter(`Country/Region` == &quot;US&quot;) %&gt;% select(-Longitude, 
+    -Latitude)
+
+## 3/14/2020 cumulative cases in US
+US_03142020 &lt;- US %&gt;% filter(Date == &quot;3.14.20&quot;) %&gt;% filter(str_detect(`Province/State`, 
+    pattern = &quot;,&quot;, negate = TRUE)) %&gt;% arrange(desc(`Confirmed Cases`))
+
+kable(head(US_03142020), booktabs = T, row.names = F, caption = &quot;Table 3: U.S. confirmed cases, deaths, and recovered by states&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-4">Table 1: </span>Table 3: U.S. confirmed cases, deaths, and recovered by states
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Province/State
+</th>
+<th style="text-align:left;">
+Country/Region
+</th>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:right;">
+Confirmed Cases
+</th>
+<th style="text-align:right;">
+Deaths
+</th>
+<th style="text-align:right;">
+Recovered
+</th>
+<th style="text-align:right;">
+% death
+</th>
+<th style="text-align:right;">
+% recovered
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Washington
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+572
+</td>
+<td style="text-align:right;">
+37
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+6.47
+</td>
+<td style="text-align:right;">
+0.17
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+New York
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+525
+</td>
+<td style="text-align:right;">
+2
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.38
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+California
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+340
+</td>
+<td style="text-align:right;">
+5
+</td>
+<td style="text-align:right;">
+6
+</td>
+<td style="text-align:right;">
+1.47
+</td>
+<td style="text-align:right;">
+1.76
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Massachusetts
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+138
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+<td style="text-align:right;">
+0.72
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Colorado
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+101
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0.99
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Louisiana
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+77
+</td>
+<td style="text-align:right;">
+1
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+1.30
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>USsummary &lt;- US_03142020 %&gt;% summarize(`Total confirmed cases` = sum(`Confirmed Cases`), 
+    `Total deaths` = sum(Deaths), `Total recovered` = sum(Recovered)) %&gt;% 
+    mutate(`% Death` = 100 * `Total deaths`/`Total confirmed cases`, 
+        `% Recovery` = 100 * `Total recovered`/`Total confirmed cases`) %&gt;% 
+    mutate_at(vars(`% Death`, `% Recovery`), funs(round(., 2)))
+
+kable(USsummary, booktabs = T, row.names = F, caption = &quot;Table 4: Summary of U.S. cumulative cases, deaths, and recovery as of 3/14/20&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-4">Table 1: </span>Table 4: Summary of U.S. cumulative cases, deaths, and recovery as of 3/14/20
+</caption>
+<thead>
+<tr>
+<th style="text-align:right;">
+Total confirmed cases
+</th>
+<th style="text-align:right;">
+Total deaths
+</th>
+<th style="text-align:right;">
+Total recovered
+</th>
+<th style="text-align:right;">
+% Death
+</th>
+<th style="text-align:right;">
+% Recovery
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:right;">
+2726
+</td>
+<td style="text-align:right;">
+54
+</td>
+<td style="text-align:right;">
+12
+</td>
+<td style="text-align:right;">
+1.98
+</td>
+<td style="text-align:right;">
+0.44
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>## using group_by and summarize to get some stats
+
+### group_by two categorical variables to get the total number
+### of confirmed cases, deaths, and recovered by country/region
+### and province/state
+asoftoday &lt;- fulldata %&gt;% group_by_at(vars(`Province/State`, 
+    `Country/Region`)) %&gt;% summarize(`confirmed cases as of 3/14/20` = max(`Confirmed Cases`), 
+    `deaths as of 3/14/20` = max(Deaths), `recovered as of 3/14/20` = max(Recovered)) %&gt;% 
+    arrange(desc(`confirmed cases as of 3/14/20`))
+
+glimpse(asoftoday)</code></pre>
+<pre><code>## Observations: 442
+## Variables: 5
+## Groups: Province/State [306]
+## $ `Province/State`                &lt;fct&gt; Hubei, , , , , , France, , Guangdon...
+## $ `Country/Region`                &lt;fct&gt; &quot;China&quot;, &quot;Italy&quot;, &quot;Iran&quot;, &quot;Korea, S...
+## $ `confirmed cases as of 3/14/20` &lt;int&gt; 67790, 21157, 12729, 8086, 6391, 45...
+## $ `deaths as of 3/14/20`          &lt;int&gt; 3075, 1441, 611, 72, 195, 9, 91, 13...
+## $ `recovered as of 3/14/20`       &lt;int&gt; 52960, 1966, 2959, 510, 517, 46, 12...</code></pre>
+<pre class="r"><code>allCase &lt;- fulldata %&gt;% group_by(Date) %&gt;% 
+summarize(totalCase = sum(`Confirmed Cases`), totalDeath = sum(Deaths), 
+    totalRecovered = sum(Recovered)) %&gt;% arrange(totalCase)
+
+kable(allCase, booktabs = T, row.names = F, caption = &quot;Table 5: Worldwide cumulative confirmed cases, deaths, and recovered from 1/22/20 to 3/14/20&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-4">Table 1: </span>Table 5: Worldwide cumulative confirmed cases, deaths, and recovered from 1/22/20 to 3/14/20
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Date
+</th>
+<th style="text-align:right;">
+totalCase
+</th>
+<th style="text-align:right;">
+totalDeath
+</th>
+<th style="text-align:right;">
+totalRecovered
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+1.22.20
+</td>
+<td style="text-align:right;">
+555
+</td>
+<td style="text-align:right;">
+17
+</td>
+<td style="text-align:right;">
+28
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.23.20
+</td>
+<td style="text-align:right;">
+653
+</td>
+<td style="text-align:right;">
+18
+</td>
+<td style="text-align:right;">
+30
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.24.20
+</td>
+<td style="text-align:right;">
+941
+</td>
+<td style="text-align:right;">
+26
+</td>
+<td style="text-align:right;">
+36
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.25.20
+</td>
+<td style="text-align:right;">
+1434
+</td>
+<td style="text-align:right;">
+42
+</td>
+<td style="text-align:right;">
+39
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.26.20
+</td>
+<td style="text-align:right;">
+2118
+</td>
+<td style="text-align:right;">
+56
+</td>
+<td style="text-align:right;">
+52
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.27.20
+</td>
+<td style="text-align:right;">
+2927
+</td>
+<td style="text-align:right;">
+82
+</td>
+<td style="text-align:right;">
+61
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.28.20
+</td>
+<td style="text-align:right;">
+5578
+</td>
+<td style="text-align:right;">
+131
+</td>
+<td style="text-align:right;">
+107
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.29.20
+</td>
+<td style="text-align:right;">
+6166
+</td>
+<td style="text-align:right;">
+133
+</td>
+<td style="text-align:right;">
+126
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.30.20
+</td>
+<td style="text-align:right;">
+8234
+</td>
+<td style="text-align:right;">
+171
+</td>
+<td style="text-align:right;">
+143
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+1.31.20
+</td>
+<td style="text-align:right;">
+9927
+</td>
+<td style="text-align:right;">
+213
+</td>
+<td style="text-align:right;">
+222
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.1.20
+</td>
+<td style="text-align:right;">
+12038
+</td>
+<td style="text-align:right;">
+259
+</td>
+<td style="text-align:right;">
+284
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.2.20
+</td>
+<td style="text-align:right;">
+16787
+</td>
+<td style="text-align:right;">
+362
+</td>
+<td style="text-align:right;">
+472
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.3.20
+</td>
+<td style="text-align:right;">
+19881
+</td>
+<td style="text-align:right;">
+426
+</td>
+<td style="text-align:right;">
+623
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.4.20
+</td>
+<td style="text-align:right;">
+23892
+</td>
+<td style="text-align:right;">
+492
+</td>
+<td style="text-align:right;">
+852
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.5.20
+</td>
+<td style="text-align:right;">
+27635
+</td>
+<td style="text-align:right;">
+564
+</td>
+<td style="text-align:right;">
+1124
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.6.20
+</td>
+<td style="text-align:right;">
+30817
+</td>
+<td style="text-align:right;">
+634
+</td>
+<td style="text-align:right;">
+1487
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.7.20
+</td>
+<td style="text-align:right;">
+34391
+</td>
+<td style="text-align:right;">
+719
+</td>
+<td style="text-align:right;">
+2011
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.8.20
+</td>
+<td style="text-align:right;">
+37120
+</td>
+<td style="text-align:right;">
+806
+</td>
+<td style="text-align:right;">
+2616
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.9.20
+</td>
+<td style="text-align:right;">
+40150
+</td>
+<td style="text-align:right;">
+906
+</td>
+<td style="text-align:right;">
+3244
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.10.20
+</td>
+<td style="text-align:right;">
+42762
+</td>
+<td style="text-align:right;">
+1013
+</td>
+<td style="text-align:right;">
+3946
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.11.20
+</td>
+<td style="text-align:right;">
+44802
+</td>
+<td style="text-align:right;">
+1113
+</td>
+<td style="text-align:right;">
+4683
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.12.20
+</td>
+<td style="text-align:right;">
+45221
+</td>
+<td style="text-align:right;">
+1118
+</td>
+<td style="text-align:right;">
+5150
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.13.20
+</td>
+<td style="text-align:right;">
+60368
+</td>
+<td style="text-align:right;">
+1371
+</td>
+<td style="text-align:right;">
+6295
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.14.20
+</td>
+<td style="text-align:right;">
+66885
+</td>
+<td style="text-align:right;">
+1523
+</td>
+<td style="text-align:right;">
+8058
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.15.20
+</td>
+<td style="text-align:right;">
+69030
+</td>
+<td style="text-align:right;">
+1666
+</td>
+<td style="text-align:right;">
+9395
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.16.20
+</td>
+<td style="text-align:right;">
+71224
+</td>
+<td style="text-align:right;">
+1770
+</td>
+<td style="text-align:right;">
+10865
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.17.20
+</td>
+<td style="text-align:right;">
+73258
+</td>
+<td style="text-align:right;">
+1868
+</td>
+<td style="text-align:right;">
+12583
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.18.20
+</td>
+<td style="text-align:right;">
+75136
+</td>
+<td style="text-align:right;">
+2007
+</td>
+<td style="text-align:right;">
+14352
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.19.20
+</td>
+<td style="text-align:right;">
+75639
+</td>
+<td style="text-align:right;">
+2122
+</td>
+<td style="text-align:right;">
+16121
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.20.20
+</td>
+<td style="text-align:right;">
+76197
+</td>
+<td style="text-align:right;">
+2247
+</td>
+<td style="text-align:right;">
+18177
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.21.20
+</td>
+<td style="text-align:right;">
+76823
+</td>
+<td style="text-align:right;">
+2251
+</td>
+<td style="text-align:right;">
+18890
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.22.20
+</td>
+<td style="text-align:right;">
+78579
+</td>
+<td style="text-align:right;">
+2458
+</td>
+<td style="text-align:right;">
+22886
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.23.20
+</td>
+<td style="text-align:right;">
+78965
+</td>
+<td style="text-align:right;">
+2469
+</td>
+<td style="text-align:right;">
+23394
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.24.20
+</td>
+<td style="text-align:right;">
+79568
+</td>
+<td style="text-align:right;">
+2629
+</td>
+<td style="text-align:right;">
+25227
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.25.20
+</td>
+<td style="text-align:right;">
+80413
+</td>
+<td style="text-align:right;">
+2708
+</td>
+<td style="text-align:right;">
+27905
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.26.20
+</td>
+<td style="text-align:right;">
+81395
+</td>
+<td style="text-align:right;">
+2770
+</td>
+<td style="text-align:right;">
+30384
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.27.20
+</td>
+<td style="text-align:right;">
+82754
+</td>
+<td style="text-align:right;">
+2814
+</td>
+<td style="text-align:right;">
+33277
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.28.20
+</td>
+<td style="text-align:right;">
+84120
+</td>
+<td style="text-align:right;">
+2872
+</td>
+<td style="text-align:right;">
+36711
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+2.29.20
+</td>
+<td style="text-align:right;">
+86011
+</td>
+<td style="text-align:right;">
+2941
+</td>
+<td style="text-align:right;">
+39782
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.1.20
+</td>
+<td style="text-align:right;">
+88369
+</td>
+<td style="text-align:right;">
+2996
+</td>
+<td style="text-align:right;">
+42716
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.2.20
+</td>
+<td style="text-align:right;">
+90306
+</td>
+<td style="text-align:right;">
+3085
+</td>
+<td style="text-align:right;">
+45602
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.3.20
+</td>
+<td style="text-align:right;">
+92840
+</td>
+<td style="text-align:right;">
+3160
+</td>
+<td style="text-align:right;">
+48228
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.4.20
+</td>
+<td style="text-align:right;">
+95120
+</td>
+<td style="text-align:right;">
+3254
+</td>
+<td style="text-align:right;">
+51170
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.5.20
+</td>
+<td style="text-align:right;">
+97882
+</td>
+<td style="text-align:right;">
+3348
+</td>
+<td style="text-align:right;">
+53796
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.6.20
+</td>
+<td style="text-align:right;">
+101784
+</td>
+<td style="text-align:right;">
+3460
+</td>
+<td style="text-align:right;">
+55865
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.7.20
+</td>
+<td style="text-align:right;">
+105821
+</td>
+<td style="text-align:right;">
+3558
+</td>
+<td style="text-align:right;">
+58358
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.8.20
+</td>
+<td style="text-align:right;">
+109795
+</td>
+<td style="text-align:right;">
+3802
+</td>
+<td style="text-align:right;">
+60694
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.9.20
+</td>
+<td style="text-align:right;">
+113561
+</td>
+<td style="text-align:right;">
+3988
+</td>
+<td style="text-align:right;">
+62494
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.10.20
+</td>
+<td style="text-align:right;">
+118592
+</td>
+<td style="text-align:right;">
+4262
+</td>
+<td style="text-align:right;">
+64404
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.11.20
+</td>
+<td style="text-align:right;">
+125865
+</td>
+<td style="text-align:right;">
+4615
+</td>
+<td style="text-align:right;">
+67003
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.12.20
+</td>
+<td style="text-align:right;">
+128343
+</td>
+<td style="text-align:right;">
+4720
+</td>
+<td style="text-align:right;">
+68324
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.13.20
+</td>
+<td style="text-align:right;">
+145193
+</td>
+<td style="text-align:right;">
+5404
+</td>
+<td style="text-align:right;">
+70251
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+3.14.20
+</td>
+<td style="text-align:right;">
+156102
+</td>
+<td style="text-align:right;">
+5819
+</td>
+<td style="text-align:right;">
+72624
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>deathRate_world = max(allCase$totalDeath)/max(allCase$totalCase) * 
+    100
+signif(deathRate_world, digits = 3)</code></pre>
+<pre><code>## [1] 3.73</code></pre>
+<p><em>As of March 14, 2020, Hubei Province in China has a cumulative of 67790 confirmed cases, with a death rate of 4.54% (Table 1). China has a cumulative total of 80977 confirmed cases, 3193 deaths, and 65660 recovered, with an average 3.94% death rate and an average 81.08% recovery rate (Table 2). However, as more and more patients are being treated effectively and recovered from COVID-19, the current cases are below 100 in all provinces except in Hubei (Table 2). In Hubei, the number of current cases is still over 10000.</em></p>
+<p><em>As of March 14, 2020, all U.S. states except West Virgina have reported at least 1 confirmed COVID-19 cases. The state of Washington has a cumulative of 572 confirmed cases, the state of New York has 525 confirmed cases, and California has 340 confirmed cases. The state of Washington also has 37 deaths, the most number of deaths among all the states (Table 3). The U.S. has a cumulative total of 2726 confirmed cases, 54 deaths, and 12 recovered, with an average death rate of 1.98% and an average recovery rate of 0.44% (Table 4). Although the averge death rate across all states remains low, individual stats, such as Washington and Florida, have much higher death rates. For example, the death rate in the stae of Washington reached 6.47% as of 3/14/2020. (Table 3)</em></p>
+<p><em>As of March 14, 2020, total cumulative cases worldwide is 156102, with 5819 deaths and 72624 recovered (Table 5). The average death rate worldwide is 3.73%, while the average recovery rate is 46.52% (Table 6).</em></p>
+<pre class="r"><code>## Summary statistics
+
+## summary stats for number of confirmed cases, deaths, and
+## recovered by country/region and province/state
+table_ns &lt;- asoftoday %&gt;% summarize(`Mean of confirmed cases` = mean(`confirmed cases as of 3/14/20`), 
+    `Median of confirmed cases` = median(`confirmed cases as of 3/14/20`), 
+    `Mean of deaths` = mean(`deaths as of 3/14/20`), `Median of deaths` = median(`deaths as of 3/14/20`), 
+    `Mean of recovered` = mean(`recovered as of 3/14/20`), `Median of recovered` = median(`recovered as of 3/14/20`))
+
+print(table_ns)</code></pre>
+<pre><code>## # A tibble: 306 x 7
+##    `Province/State` `Mean of confir~ `Median of conf~ `Mean of deaths`
+##    &lt;fct&gt;                       &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+##  1 &quot;&quot;                           480.               18             18.1
+##  2 &quot;Adams, IN&quot;                    0                 0              0  
+##  3 &quot;Alabama&quot;                      6                 6              0  
+##  4 &quot;Alachua, FL&quot;                  0                 0              0  
+##  5 &quot;Alameda County~               2                 2              0  
+##  6 &quot;Alaska&quot;                       1                 1              0  
+##  7 &quot;Alberta&quot;                     29                29              0  
+##  8 &quot;Anhui&quot;                      990               990              6  
+##  9 &quot;Anoka, MN&quot;                    0                 0              0  
+## 10 &quot;Arapahoe, CO&quot;                 0                 0              0  
+## # ... with 296 more rows, and 3 more variables: `Median of deaths` &lt;dbl&gt;, `Mean
+## #   of recovered` &lt;dbl&gt;, `Median of recovered` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>## summary stats for number of confirmed cases, deaths, and
+## recovered worldwide
+table_6 &lt;- allCase %&gt;% summarize(Total = max(totalCase), Median = median(totalCase), 
+    IQR = IQR(totalCase), `Total death` = max(totalDeath), `Median of deaths` = median(totalDeath), 
+    `IQR of deaths` = IQR(totalDeath), `Total recovered` = max(totalRecovered), 
+    `Median of recovered` = median(totalRecovered), `IQR of recovered` = IQR(totalRecovered)) %&gt;% 
+    mutate(`% Death` = `Total death`/Total * 100, `% Recovered` = `Total recovered`/Total * 
+        100)
+
+kable(table_6, booktabs = T, row.names = T, digits = 2, caption = &quot;Table 6: Summary statistics for worldwide confirmed cases, deaths, and recovery&quot;) %&gt;% 
+    kable_styling() %&gt;% add_header_above(c(` ` = 1, `Confirmed Cases` = 3, 
+    Deaths = 3, Recovered = 3, ` ` = 2))</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-5">Table 2: </span>Table 6: Summary statistics for worldwide confirmed cases, deaths, and recovery
+</caption>
+<thead>
+<tr>
+<th style="border-bottom:hidden" colspan="1">
+</th>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Confirmed Cases
+</div>
+</th>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Deaths
+</div>
+</th>
+<th style="border-bottom:hidden; padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Recovered
+</div>
+</th>
+<th style="border-bottom:hidden" colspan="2">
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Total
+</th>
+<th style="text-align:right;">
+Median
+</th>
+<th style="text-align:right;">
+IQR
+</th>
+<th style="text-align:right;">
+Total death
+</th>
+<th style="text-align:right;">
+Median of deaths
+</th>
+<th style="text-align:right;">
+IQR of deaths
+</th>
+<th style="text-align:right;">
+Total recovered
+</th>
+<th style="text-align:right;">
+Median of recovered
+</th>
+<th style="text-align:right;">
+IQR of recovered
+</th>
+<th style="text-align:right;">
+% Death
+</th>
+<th style="text-align:right;">
+% Recovered
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+1
+</td>
+<td style="text-align:right;">
+156102
+</td>
+<td style="text-align:right;">
+73258
+</td>
+<td style="text-align:right;">
+64477
+</td>
+<td style="text-align:right;">
+5819
+</td>
+<td style="text-align:right;">
+1868
+</td>
+<td style="text-align:right;">
+2504
+</td>
+<td style="text-align:right;">
+72624
+</td>
+<td style="text-align:right;">
+12583
+</td>
+<td style="text-align:right;">
+41864
+</td>
+<td style="text-align:right;">
+3.73
+</td>
+<td style="text-align:right;">
+46.52
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>## Total number of countries affected and which country has
+## the highest/lowest number of cases
+maximumCase &lt;- fulldata %&gt;% group_by(`Country/Region`) %&gt;% summarize(max_confirmedCase = max(`Confirmed Cases`), 
+    max(Deaths), max(Recovered)) %&gt;% arrange(desc(max_confirmedCase))
+
+glimpse(maximumCase)</code></pre>
+<pre><code>## Observations: 143
+## Variables: 4
+## $ `Country/Region`  &lt;fct&gt; &quot;China&quot;, &quot;Italy&quot;, &quot;Iran&quot;, &quot;Korea, South&quot;, &quot;Spain&quot;...
+## $ max_confirmedCase &lt;int&gt; 67790, 21157, 12729, 8086, 6391, 4585, 4469, 1359...
+## $ `max(Deaths)`     &lt;int&gt; 3075, 1441, 611, 72, 195, 9, 91, 13, 21, 3, 2, 12...
+## $ `max(Recovered)`  &lt;int&gt; 52960, 1966, 2959, 510, 517, 46, 12, 4, 18, 1, 1,...</code></pre>
+<pre class="r"><code>count(maximumCase)</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##       n
+##   &lt;int&gt;
+## 1   143</code></pre>
+<pre class="r"><code>table_7 &lt;- asoftoday %&gt;% filter(`Country/Region` == &quot;China&quot; &amp;&amp; 
+    `Province/State` == &quot;Hubei&quot; | `confirmed cases as of 3/14/20` == 
+    0)
+
+kable(head(table_7), booktabs = T, row.names = F, caption = &quot;Table 7: Province/States with the highest number of cases and zero cases&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-5">Table 2: </span>Table 7: Province/States with the highest number of cases and zero cases
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+Province/State
+</th>
+<th style="text-align:left;">
+Country/Region
+</th>
+<th style="text-align:right;">
+confirmed cases as of 3/14/20
+</th>
+<th style="text-align:right;">
+deaths as of 3/14/20
+</th>
+<th style="text-align:right;">
+recovered as of 3/14/20
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Hubei
+</td>
+<td style="text-align:left;">
+China
+</td>
+<td style="text-align:right;">
+67790
+</td>
+<td style="text-align:right;">
+3075
+</td>
+<td style="text-align:right;">
+52960
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+</td>
+<td style="text-align:left;">
+occupied Palestinian territory
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Adams, IN
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Alachua, FL
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Anoka, MN
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Arapahoe, CO
+</td>
+<td style="text-align:left;">
+US
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+<td style="text-align:right;">
+0
+</td>
+</tr>
+</tbody>
+</table>
+<pre class="r"><code>## correlation matrix of numeric variables
+correlationMatrix &lt;- fulldata %&gt;% select(-Longitude, -Latitude, 
+    -Date, -`Province/State`, -`Country/Region`, -`% death`, 
+    -`% recovered`)
+table_8 &lt;- cor(correlationMatrix)
+
+kable(table_8, booktabs = T, row.names = T, digit = 2, caption = &quot;Table 8: Correlation matrix of worldwide cumulative confirmed cases, deaths, and recovered&quot;) %&gt;% 
+    kable_styling(latex_options = &quot;striped&quot;)</code></pre>
+<table class="table" style="margin-left: auto; margin-right: auto;">
+<caption>
+<span id="tab:unnamed-chunk-5">Table 2: </span>Table 8: Correlation matrix of worldwide cumulative confirmed cases, deaths, and recovered
+</caption>
+<thead>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Confirmed Cases
+</th>
+<th style="text-align:right;">
+Deaths
+</th>
+<th style="text-align:right;">
+Recovered
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;">
+Confirmed Cases
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.98
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Deaths
+</td>
+<td style="text-align:right;">
+0.98
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+<td style="text-align:right;">
+0.91
+</td>
+</tr>
+<tr>
+<td style="text-align:left;">
+Recovered
+</td>
+<td style="text-align:right;">
+0.86
+</td>
+<td style="text-align:right;">
+0.91
+</td>
+<td style="text-align:right;">
+1.00
+</td>
+</tr>
+</tbody>
+</table>
+<p><em>The total nubmer of confirmed cases, deaths, and recovered worldwide are summarized in Table 6, together with their median and IQR. The interquartile ranges for confirmed cases, deaths, and recovered are quite high, indicating that there are large discrepancies among countries/regions.</em></p>
+<p><em>As of March 14, 2020, COVID-19 has spreaded to 143 countries (maximumCase), and the numbers of deaths and recovered are highly correlated with the number of total confirmed cases (Table 8). Hubei, China has the highest number of cumulative confirmed cases, deaths, and recovered in the world as the novel coronavirus was firstly found there (Table 7). Although confirmed cases of COVID-19 are found in 49 states in the U.S., there are certain cities in the U.S. that have yet reported confirmed cases. These cities are summarized in Table 7.</em></p>
+</div>
+<div id="visualizing" class="section level2">
+<h2>4. Visualizing</h2>
+<pre class="r"><code>## correlation heat map
+
+## tidy up correlation matrix
+tidycor&lt;-cor(correlationMatrix)%&gt;%as.data.frame%&gt;%
+rownames_to_column%&gt;%
+pivot_longer(-1,names_to=&quot;name&quot;,values_to=&quot;correlation&quot;)
+
+## Plot!
+tidycor %&gt;%
+  ggplot(aes(rowname,name,fill=correlation))+
+geom_tile()+
+scale_fill_gradient(low = &quot;orange&quot;, high = &quot;steelblue&quot;)+ #makes colors!
+geom_text(aes(label=round(correlation,2)),color = &quot;black&quot;, size = 4)+ #overlay values
+theme(axis.text.x = element_text(angle = 45, hjust=1, color=&quot;black&quot;, size=12), axis.text.y = element_text(color=&quot;black&quot;, size=12))+ #flips x-axis labels
+coord_fixed()+ #makes it square
+  xlab(&quot;&quot;)+ylab(&quot;&quot;)+ # get rid of x- &amp; y-axis
+  labs(title = &quot;Heat map of worldwide cumulative confirmed cases, deaths, \nand recovered&quot;)+
+  theme(plot.title = element_text(color=&quot;black&quot;, size=10, face=&quot;bold.italic&quot;))</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" />
+<em>The heat map describing the correlations of the total nubmer of confirmed cases, deaths, and recovered shows that the number of deaths and the number of recovered are highly correlated with the number of confirmed cases, as the correlation scores are 0.98 and 0.86, respectively. The correlation between the number of deaths and the number of recovered is also high with a correlation score of 0.91. These findings are expected since as the number of confirmed cases increases, the number of deaths will also increase.</em></p>
+<pre class="r"><code>## plot 2: number of worldwide cases, deaths, and recovered
+## v.s. time on the same plot
+
+## Make &#39;Date&#39; appear in order
+allCase$Date &lt;- as.factor(allCase$Date)
+allCase$Date &lt;- factor(allCase$Date, levels = allCase$Date[order(allCase$totalCase)])
+
+## Convert dataset to longer format
+allCase_1 &lt;- allCase %&gt;% rename(`Total confirmed cases` = &quot;totalCase&quot;, 
+    `Total number of death` = &quot;totalDeath&quot;, `Total number of recovered` = &quot;totalRecovered&quot;) %&gt;% 
+    pivot_longer(c(&quot;Total confirmed cases&quot;, &quot;Total number of death&quot;, 
+        &quot;Total number of recovered&quot;), names_to = &quot;Type&quot;, values_to = &quot;Number of cases&quot;)
+
+## Plot!
+ggplot() + theme_economist() + scale_fill_economist() + theme(plot.title = element_text(family = &quot;OfficinaSanITC-Book&quot;), 
+    text = element_text(family = &quot;OfficinaSanITC-Book&quot;), axis.title.x = element_text(vjust = -5), 
+    axis.title.y = element_text(vjust = 2)) + geom_bar(data = allCase_1, 
+    aes(x = Date, y = `Number of cases`, fill = Type), stat = &quot;summary&quot;, 
+    width = 1, position = &quot;dodge&quot;) + labs(title = &quot;Number of confirmed cases, deaths, and recovered worldwide \n from 1/22/20 to 3/14/20&quot;, 
+    x = &quot;Date&quot;, y = &quot;Number of cases&quot;, fill = &quot;Type of cases&quot;) + 
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 15), 
+        expand = c(0, 0)) + theme(plot.title = element_text(color = &quot;black&quot;, 
+    size = 10, face = &quot;bold.italic&quot;), axis.text.x = element_text(angle = 75, 
+    size = 5, color = &quot;black&quot;), axis.text.y = element_text(size = 7), 
+    axis.title.x = element_text(size = 8), axis.title.y = element_text(size = 8), 
+    legend.position = &quot;right&quot;, legend.title = element_text(size = 8, 
+        face = &quot;bold&quot;), legend.text = element_text(size = 8)) + 
+    geom_smooth(data = allCase, aes(x = Date, y = totalCase, 
+        group = 1), se = F, size = 0.7, color = &quot;chocolate&quot;)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" />
+<em>In this bar graph, the worldwide total number of confirmed cases of COVID-19, deaths resulted from COVID-19, and the nubmer of recovered patients from 1/22/2020 to 3/14/2020 is ploted. While the number of deaths resulted from COVID-19 remains low during this period, the total confirmed cases worldwide has been increasing exponentially. Before 2/17/2020, majority of the cases were identified in China, with the highest number of cases found in Hubei province. There appears to be a slow growing period in the total number of confirmed cases from 2/17/2020 to 2/23/2020, but it quickly continued growing exponentially after that possibly due to the spreading of COVID-19 to Europe and other Asian countries.</em></p>
+<pre class="r"><code>## plot 3: number of total cases, deaths, and recovered v.s.
+## time in China on the same plot
+
+## creat a new dataset in time seires
+ChinaTimeseries &lt;- China %&gt;% group_by(Date) %&gt;% summarize(`Total confirmed cases` = sum(`Confirmed Cases`), 
+    `Total number of death` = sum(Deaths), `Total number of recovered` = sum(Recovered)) %&gt;% 
+    arrange(`Total confirmed cases`)
+
+## Make &#39;Date&#39; appear in order
+ChinaTimeseries$Date &lt;- as.factor(ChinaTimeseries$Date)
+ChinaTimeseries$Date &lt;- factor(ChinaTimeseries$Date, levels = ChinaTimeseries$Date[order(ChinaTimeseries$`Total confirmed cases`)])
+
+## convert dataset to longer format
+ChinaTimeseries_1 &lt;- ChinaTimeseries %&gt;% pivot_longer(c(&quot;Total confirmed cases&quot;, 
+    &quot;Total number of death&quot;, &quot;Total number of recovered&quot;), names_to = &quot;Type&quot;, 
+    values_to = &quot;Number of cases&quot;)
+
+## Plot!
+ggplot() + theme_economist() + scale_fill_economist() + theme(plot.title = element_text(family = &quot;OfficinaSanITC-Book&quot;), 
+    text = element_text(family = &quot;OfficinaSanITC-Book&quot;), axis.title.x = element_text(vjust = -5), 
+    axis.title.y = element_text(vjust = 2)) + geom_bar(data = ChinaTimeseries_1, 
+    aes(x = Date, y = `Number of cases`, fill = Type), stat = &quot;summary&quot;, 
+    width = 1, position = &quot;dodge&quot;) + labs(title = &quot;Number of confirmed cases, deaths, and recovered in China \n from 1/22/20 to 3/14/20&quot;, 
+    x = &quot;Date&quot;, y = &quot;Number of cases&quot;, fill = &quot;Type of cases&quot;) + 
+    scale_y_continuous(breaks = scales::pretty_breaks(n = 10), 
+        expand = c(0, 0)) + theme(plot.title = element_text(color = &quot;black&quot;, 
+    size = 10, face = &quot;bold.italic&quot;), axis.text.x = element_text(angle = 75, 
+    size = 5, color = &quot;black&quot;), axis.text.y = element_text(size = 7), 
+    axis.title.x = element_text(size = 8), axis.title.y = element_text(size = 8), 
+    legend.position = &quot;right&quot;, legend.title = element_text(size = 8, 
+        face = &quot;bold&quot;), legend.text = element_text(size = 8)) + 
+    geom_smooth(data = ChinaTimeseries, se = F, aes(x = Date, 
+        y = `Total confirmed cases`, group = 1), size = 0.7, 
+        color = &quot;chocolate&quot;)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" />
+<em>In this bar graph, the total number of confirmed cases of COVID-19, deaths resulted from COVID-19, and the number of recovered patients in China from 1/22/2020 to 3/14/2020 is ploted. From 1/22/20 to 2/17/20, the number of total confirmed cases increased exponentially in China, but from 2/17/20 to 3/14/20, the increase in the nubmer of confirmed cases has been slowed down dramatically due to effective control and containment of the infectious disease. This dramatic decrease is due to drastic measures such as city lockdown, isolation and quarantine, and social distancing. There was an almost 20000 increase in the nubmer of cases from 2/11/2020 to 2/12/2020, possibly due to the increase in the ability and capacity to test more patients during that period.</em></p>
+<p><em>Although the number of cases has stopped increasing exponentially since 2/17/20, the nubmer of patients recovered is still increasing rapidly everyday thanks to the doctors and nurses who have been working very hard since the outbreak of COVID-19 in China, and the researchers and scientists who have been dedicatedly studying this novel coronavirus.</em></p>
+<pre class="r"><code>## plot 4: geographic distribution of confirmed cases in China
+
+## Create a new dataset w/ latitudes and longitudes
+China_geo &lt;- fulldata %&gt;% filter(`Country/Region` == &quot;China&quot;) %&gt;% 
+    select(-`% death`, -`% recovered`)
+
+## 3/14/2020 cumulative cases in China w/ geographical info
+China_03142020_geo &lt;- China_geo %&gt;% filter(Date == &quot;3.14.20&quot;) %&gt;% 
+    arrange(desc(`Confirmed Cases`)) %&gt;% mutate(`Current Cases` = `Confirmed Cases` - 
+    Deaths - Recovered)
+
+## pivot from wide to long
+China_03142020_geo1 &lt;- China_03142020_geo %&gt;% pivot_longer(c(&quot;Confirmed Cases&quot;, 
+    &quot;Current Cases&quot;), names_to = &quot;Type of cases&quot;, values_to = &quot;Cases&quot;)
+
+## Load map of China
+China_map &lt;- map_data(&quot;china&quot;)
+
+## Plot!
+ggplot() + theme_economist() + scale_fill_economist() + theme(plot.title = element_text(family = &quot;OfficinaSanITC-Book&quot;), 
+    text = element_text(family = &quot;OfficinaSanITC-Book&quot;)) + geom_polygon(data = China_map, 
+    aes(x = long, y = lat, group = group)) + coord_fixed(1.5) + 
+    xlab(&quot;Longitude&quot;) + ylab(&quot;Latitude&quot;) + ggtitle(&quot;Distribution of cumulative and current confirmed cases in China \n as of 3/14/2020&quot;) + 
+    theme(plot.title = element_text(color = &quot;black&quot;, size = 11.5, 
+        face = &quot;bold.italic&quot;), axis.text.x = element_text(angle = 0, 
+        size = 8, color = &quot;black&quot;), axis.text.y = element_text(size = 8), 
+        axis.title.x = element_text(size = 8), axis.title.y = element_text(size = 8)) + 
+    geom_point(data = China_03142020_geo1, aes(x = Longitude, 
+        y = Latitude, size = Cases), color = &quot;brown3&quot;, alpha = 0.5) + 
+    scale_size_continuous(limits = c(1, 70000), range = c(0, 
+        15)) + facet_wrap(. ~ `Type of cases`, ncol = 2) + theme(legend.position = &quot;bottom&quot;, 
+    legend.title = element_text(size = 8, face = &quot;bold&quot;), legend.text = element_text(size = 8)) + 
+    theme(strip.text.x = element_text(size = 8, face = &quot;bold.italic&quot;), 
+        strip.text.y = element_text(size = 8, face = &quot;bold.italic&quot;))</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" />
+<em>The distribution of number of confirmed cases of COVID-19 as of 3/14/2020 in China is plotted in this graph. The size of the data points reflects the number of cases in a certain province. The larger the point, the more cases in that province. The point in Hubei province where COVID-19 was first identified is significantly larger than those in other provinces. From this graph, we can also see the spatial distribution of the infectious disease. Provinces that are closer to Hubei province have more cases compared to provinces that are farther away, indicating that the ease of transportation and travel could contribute to the spreading of COVID-19.</em></p>
+<pre class="r"><code>## plot 5: geographic distribution of confirmed cases in the
+## U.S.
+
+## Create a new dataset w/ latitudes and longitudes
+US_geo &lt;- fulldata %&gt;% filter(`Country/Region` == &quot;US&quot;) %&gt;% select(-`% death`, 
+    -`% recovered`, -Deaths, -Recovered)
+
+## 3/10/2020-3/14/2020 cumulative cases in the U.S. w/
+## geographical info
+US_03142020_geo &lt;- US_geo %&gt;% filter(Date == &quot;3.14.20&quot; | Date == 
+    &quot;3.13.20&quot; | Date == &quot;3.12.20&quot; | Date == &quot;3.11.20&quot; | Date == 
+    &quot;3.10.20&quot;) %&gt;% filter(`Province/State` != &quot;Hawaii&quot; &amp; `Province/State` != 
+    &quot;Alaska&quot; &amp; `Province/State` != &quot;Puerto Rico&quot; &amp; `Province/State` != 
+    &quot;Virgin Islands, U.S.&quot; &amp; `Province/State` != &quot;Diamond Princess&quot;) %&gt;% 
+    arrange(Date)
+
+## Load map of U.S.
+USstates_map &lt;- map_data(&quot;state&quot;)
+
+## Plot!
+ggplot(data = USstates_map) + geom_polygon(aes(x = long, y = lat, 
+    group = group), color = &quot;white&quot;) + coord_fixed(1.3) + xlab(&quot;Longitude&quot;) + 
+    ylab(&quot;Latitude&quot;) + ggtitle(&quot;Distribution of cumulative confirmed cases in the U.S.\n from 3/10/2020 to 3/14/2020&quot;) + 
+    theme(plot.title = element_text(color = &quot;black&quot;, size = 10, 
+        face = &quot;bold.italic&quot;), axis.text.x = element_text(angle = 0, 
+        size = 8, color = &quot;black&quot;), axis.text.y = element_text(size = 8), 
+        axis.title.x = element_text(size = 8), axis.title.y = element_text(size = 8)) + 
+    geom_point(data = US_03142020_geo, aes(x = Longitude, y = Latitude, 
+        size = `Confirmed Cases`), color = &quot;brown3&quot;, alpha = 0.5) + 
+    scale_size_continuous(limits = c(1, 700), range = c(0, 5)) + 
+    theme(legend.position = &quot;right&quot;, legend.title = element_text(size = 8, 
+        face = &quot;bold&quot;), legend.text = element_text(size = 8)) + 
+    facet_wrap(. ~ Date, ncol = 3, labeller = label_both) + theme(strip.text.x = element_text(size = 8, 
+    face = &quot;bold.italic&quot;), strip.text.y = element_text(size = 8, 
+    face = &quot;bold.italic&quot;))</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" />
+<em>The spatial distribution of COVID-19 in each state and the increase of confirmed cases from 3/10/20 to 3/14/20 are shown in this graph. According to the sizes of the data points, we can observe that Washtington state, California, and New York have significantly more cases than other states. The increase in the nubmer of cases is also very apparent in some states, for example in Texas and Florida, within just five days, indicating the ability of the virus to rapidly spread if no control measures are implemented.</em></p>
+</div>
+<div id="dimensionality-reduction" class="section level2">
+<h2>5. Dimensionality Reduction</h2>
+<pre class="r"><code># PCA steps 1. Prepare the data: center, scale, and transform
+# I chose the &#39;asoftoday&#39; dataset I got by using group_by two
+# categorical variables to get the total number of confirmed
+# cases, deaths, and recovered by country/region and
+# province/state
+
+#### I only selected the numeric variables: confirmed cases,
+#### deaths, and recovered
+
+asoftoday_nums &lt;- asoftoday %&gt;% ungroup %&gt;% select(`confirmed cases as of 3/14/20`, 
+    `deaths as of 3/14/20`, `recovered as of 3/14/20`) %&gt;% scale
+
+#### I added country/region names to the respective rows
+rownames(asoftoday_nums) &lt;- asoftoday$`Country/Region`
+
+asoftoday_nums &lt;- data.frame(asoftoday_nums)
+
+asoftoday_nums &lt;- rename(asoftoday_nums, `Confirmed cases` = &quot;confirmed.cases.as.of.3.14.20&quot;, 
+    Deaths = &quot;deaths.as.of.3.14.20&quot;, Recovered = &quot;recovered.as.of.3.14.20&quot;)</code></pre>
+<pre class="r"><code>## 2. Perform PCA I performed PCA using &#39;princomp&#39; as the
+## nubmer of columns in my data is less than the number of
+## rows
+asoftoday_pca &lt;- princomp(asoftoday_nums)
+
+summary(asoftoday_pca, loadings = T)</code></pre>
+<pre><code>## Importance of components:
+##                          Comp.1     Comp.2      Comp.3
+## Standard deviation     1.699306 0.30653396 0.107738049
+## Proportion of Variance 0.964730 0.03139204 0.003877936
+## Cumulative Proportion  0.964730 0.99612206 1.000000000
+## 
+## Loadings:
+##                 Comp.1 Comp.2 Comp.3
+## Confirmed cases  0.584  0.212  0.783
+## Deaths           0.578  0.570 -0.585
+## Recovered        0.570 -0.794 -0.211</code></pre>
+<p><em>Comp.1 in loadings is the general strength axis. All loadings/coefs have similar sign and magnitude, and therefore, a country with a higher score in Comp.1 tends to have more confirmed cases, more deaths, and more recovered. These characteristics correspond to countries that have been affected by COVID-19 for longer period of time and have contained the disease effectively, for example, China.</em></p>
+<p><em>For Comp.2, confirmed cases and deaths contribute positively, while recovered contributes negatively. Thus, countries with high scores on PC2 tend to have more confirmed cases and deaths, but fewer recovered patients. These characteristics correspond to countries that are affected by COVID-19 for shorter period of time and the disease is currently rapidly spreading, for example, the U.S.</em></p>
+<p><em>For Comp.3, confirmed cases contribute positively, while deaths and recovered contribute negatively. Thus, countries with high scores on PC3 tend to have more confirmed cases, but fewer deaths and recovered patients.</em></p>
+<pre class="r"><code>## 3. Choose the number of principal components to keep
+
+### Scree plot
+eigval &lt;- asoftoday_pca$sdev^2  #square to convert SDs to eigenvalues
+varprop = round(eigval/sum(eigval), 2)  #proportion of var explained by each PC
+
+ggplot() + geom_bar(aes(y = varprop, x = 1:3), stat = &quot;identity&quot;) + 
+    xlab(&quot;&quot;) + geom_path(aes(y = varprop, x = 1:3)) + geom_text(aes(x = 1:3, 
+    y = varprop, label = round(varprop, 2)), vjust = 1, col = &quot;white&quot;, 
+    size = 5) + scale_y_continuous(breaks = seq(0, 0.8, 0.2), 
+    labels = scales::percent) + scale_x_continuous(breaks = 1:10)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>### cumulative proportion of variance
+round(cumsum(eigval)/sum(eigval), 2)  #cumulative proportion of variance</code></pre>
+<pre><code>## Comp.1 Comp.2 Comp.3 
+##   0.96   1.00   1.00</code></pre>
+<pre class="r"><code>### eigenvalues
+eigval  #eigenvalues</code></pre>
+<pre><code>##     Comp.1     Comp.2     Comp.3 
+## 2.88764212 0.09396307 0.01160749</code></pre>
+<p><em>Too choose the nubmer of principal components to keep, we can look at either a scree plot, the cumulative proportion of variance, or eigenvalues. The proportion of variance explained by PC1 is 0.96, while the proportion of variance explained by PC2 is 0.03. The scree plot quickly flattens at PC2.</em></p>
+<p><em>We can also pick PCs until cumulative proportion of variance is larger than 80%. The cumulative proportion of variance is 0.96 for PC1, and the cumulative proportion of variance is 1 for both PC2 and PC3.</em></p>
+<p><em>According to Kaiser’s rule, we can pick PCs whose eigenvalues are greater than 1. Only PC1’s eigenvalue is larger than 1. Based on the results obtained from all three methods and the selection criteria, only PC1 should be kept.</em></p>
+<pre class="r"><code>## 4. Grab PC scores from asoftoday_pca
+asoftodaydf &lt;- data.frame(PC1 = asoftoday_pca$scores[, 1], PC2 = asoftoday_pca$scores[, 
+    2])
+
+asoftoday &lt;- as.data.frame(asoftoday)
+
+### append PC scores to the original dataset
+pcaplot &lt;- cbind(asoftoday, asoftodaydf)</code></pre>
+<pre class="r"><code>## 5. Visualize and interpret
+
+### Plotting new PC scores
+ggplot(pcaplot, aes(PC1, PC2, color = `Country/Region`)) + geom_point() + 
+    coord_fixed() + theme(legend.position = &quot;none&quot;)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>### Plot of loadings (which vars contribute to which PCs)
+asoftoday_pca$loadings[1:3, 1:2] %&gt;% as.data.frame %&gt;% rownames_to_column %&gt;% 
+    ggplot() + geom_hline(aes(yintercept = 0), lty = 2) + geom_vline(aes(xintercept = 0), 
+    lty = 2) + ylab(&quot;PC2&quot;) + xlab(&quot;PC1&quot;) + geom_segment(aes(x = 0, 
+    y = 0, xend = Comp.1, yend = Comp.2), arrow = arrow(), col = &quot;red&quot;) + 
+    geom_label(aes(x = Comp.1 * 0.8, y = Comp.2 * 0.8, label = rowname), 
+        label.size = 0.05)</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-15-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>### Interpretation
+countryname &lt;- asoftoday$`Country/Region`
+#### highest on PC1
+asoftoday_pca$scores %&gt;% as.data.frame %&gt;% cbind(countryname, 
+    .) %&gt;% top_n(3, Comp.1)</code></pre>
+<pre><code>##   countryname    Comp.1    Comp.2      Comp.3
+## 1       China 34.029763 -1.860687 -0.09656068
+## 2       Italy  8.931086  5.655359 -0.54392837
+## 3        Iran  4.816287  1.949859  0.42892320</code></pre>
+<pre class="r"><code>#### highest on PC2
+asoftoday_pca$scores %&gt;% as.data.frame %&gt;% cbind(countryname, 
+    .) %&gt;% top_n(3, wt = Comp.2)</code></pre>
+<pre><code>##   countryname   Comp.1    Comp.2     Comp.3
+## 1       Italy 8.931086 5.6553592 -0.5439284
+## 2        Iran 4.816287 1.9498593  0.4289232
+## 3       Spain 1.735147 0.8877634  0.6847454</code></pre>
+<pre class="r"><code>#### lowest on PC2
+asoftoday_pca$scores %&gt;% as.data.frame %&gt;% cbind(countryname, 
+    .) %&gt;% top_n(3, desc(Comp.2))</code></pre>
+<pre><code>##   countryname     Comp.1     Comp.2      Comp.3
+## 1       China 34.0297635 -1.8606875 -0.09656068
+## 2       China  0.4061416 -0.3136799  0.14993053
+## 3       China  0.3399541 -0.3181706  0.15310382</code></pre>
+<p><em>In this PCA plot, each data point with a different color represents a country. We can see that most of the data points clustered tighly togeter on the PCA plot, while only three points are extreme points that are significantly separated from the dense cluster. This plot demonstrates that most of the countries in the world are expriencing a similar phase of the spreading of COVID-19: rapid case increase, low death and low recovered. One datapoint has extremely high PC1, but very low PC2, meaning that this country has lots of confirmed cases, deaths, and recovery. Moreover, the proportion of recovered is high in this country.</em></p>
+<p><em>From the plot of loadings, we can see that the nubmer of confirmed cases and the number of deaths are correlated the most as the angle is the smallest between these two variables. However, the number of deaths and the number of recovered are the least correlated variables.</em></p>
+<p><em>China, Italy, and Iran ranked the highest on PC1, which makes sense given that COVID-19 was first identified in China, and later on spreaded to Italy and Iran, causing rapid increase in the number of cases in both countries. Italy, Iran, and Spain ranked the highest on PC2, which has chracteristics of high confirmed cases and deaths, and low recovery. Not surprisingly, three different cities in China raked the lowest on PC2. As doctors and nurses in China work hard to save and to take care of the infected patients, more and more have recovered.</em></p>
+<pre><code>## R version 3.6.2 (2019-12-12)
+## Platform: x86_64-w64-mingw32/x64 (64-bit)
+## Running under: Windows 10 x64 (build 18362)
+## 
+## Matrix products: default
+## 
+## locale:
+## [1] LC_COLLATE=English_United States.1252 
+## [2] LC_CTYPE=English_United States.1252   
+## [3] LC_MONETARY=English_United States.1252
+## [4] LC_NUMERIC=C                          
+## [5] LC_TIME=English_United States.1252    
+## 
+## attached base packages:
+## [1] stats     graphics  grDevices utils     datasets  methods   base     
+## 
+## other attached packages:
+##  [1] factoextra_1.0.6 cluster_2.1.0    plotly_4.9.2     mapdata_2.3.0   
+##  [5] maps_3.3.0       ggmap_3.0.0      ggthemes_4.2.0   extrafont_0.17  
+##  [9] kableExtra_1.1.0 knitr_1.28       forcats_0.4.0    stringr_1.4.0   
+## [13] dplyr_0.8.4      purrr_0.3.3      readr_1.3.1      tidyr_1.0.2     
+## [17] tibble_2.1.3     ggplot2_3.2.1    tidyverse_1.3.0 
+## 
+## loaded via a namespace (and not attached):
+##  [1] httr_1.4.1          jsonlite_1.6.1      viridisLite_0.3.0  
+##  [4] modelr_0.1.5        assertthat_0.2.1    highr_0.8          
+##  [7] sp_1.4-1            cellranger_1.1.0    ggrepel_0.8.2      
+## [10] yaml_2.2.1          Rttf2pt1_1.3.8      pillar_1.4.3       
+## [13] backports_1.1.5     lattice_0.20-38     glue_1.3.1         
+## [16] extrafontdb_1.0     digest_0.6.23       rvest_0.3.5        
+## [19] colorspace_1.4-1    htmltools_0.4.0     plyr_1.8.5         
+## [22] pkgconfig_2.0.3     broom_0.5.4         haven_2.2.0        
+## [25] bookdown_0.18       scales_1.1.0        webshot_0.5.2      
+## [28] jpeg_0.1-8.1        farver_2.0.3        generics_0.0.2     
+## [31] withr_2.1.2         lazyeval_0.2.2      cli_2.0.1          
+## [34] magrittr_1.5        crayon_1.3.4        readxl_1.3.1       
+## [37] evaluate_0.14       fs_1.3.1            fansi_0.4.1        
+## [40] nlme_3.1-144        xml2_1.2.2          blogdown_0.18      
+## [43] tools_3.6.2         data.table_1.12.8   hms_0.5.3          
+## [46] RgoogleMaps_1.4.5.3 formatR_1.7         lifecycle_0.1.0    
+## [49] munsell_0.5.0       reprex_0.3.0        compiler_3.6.2     
+## [52] rlang_0.4.4         grid_3.6.2          rstudioapi_0.11    
+## [55] rjson_0.2.20        htmlwidgets_1.5.1   labeling_0.3       
+## [58] bitops_1.0-6        rmarkdown_2.1       gtable_0.3.0       
+## [61] DBI_1.1.0           R6_2.4.1            lubridate_1.7.4    
+## [64] utf8_1.1.4          stringi_1.4.4       Rcpp_1.0.3         
+## [67] vctrs_0.2.2         png_0.1-7           dbplyr_1.4.2       
+## [70] tidyselect_1.0.0    xfun_0.12</code></pre>
+<pre><code>## [1] &quot;2020-05-14 15:31:15 CDT&quot;</code></pre>
+<pre><code>##          sysname          release          version         nodename 
+##        &quot;Windows&quot;         &quot;10 x64&quot;    &quot;build 18362&quot; &quot;BME-LAP-A35716&quot; 
+##          machine            login             user   effective_user 
+##         &quot;x86-64&quot;         &quot;yg7569&quot;         &quot;yg7569&quot;         &quot;yg7569&quot;</code></pre>
+</div>
+
+              <hr>
+              <div class="related-posts">
+                <h5>Related Posts</h5>
+                
+              </div>
+            </div>
+          </div>
+          <hr>
+        <div class="disqus">
+  <div id="disqus_thread"></div>
+  <script type="text/javascript">
+
+    (function() {
+      
+      
+      if (window.location.hostname == "localhost")
+        return;
+
+      var disqus_shortname = '';
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+  <a href="http://disqus.com/" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a>
+</div>
+        </div>
+      </div>
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
