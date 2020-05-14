@@ -20,7 +20,7 @@ theme = "hugo-sustain"
   custom_js  = []
 
 [params.social]
-  Github        = "username"
+  Github        = "yg7569"
   Email         = "yuwan_guo@utexas.edu"
   LinkedIn      = "yuwan-g-46610ba6"
 
