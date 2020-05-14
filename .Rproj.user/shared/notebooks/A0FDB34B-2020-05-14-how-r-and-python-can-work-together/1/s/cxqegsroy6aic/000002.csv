@@ -1,0 +1,4 @@
+"0","## This is a R code chunck
+library(reticulate)
+"
+"2","package ‘reticulate’ was built under R version 3.6.3"

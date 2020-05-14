@@ -1,0 +1,8 @@
+"0","## This is a R code chunk
+cat(c(str1, py$str2, str3))
+"
+"1","Welcome to my"
+"1"," "
+"1","website! This is"
+"1"," "
+"1","my first blog post."

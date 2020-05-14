@@ -1,0 +1,28 @@
+---
+title: How R and Python can work together
+author: Yuwan Guo
+date: '2020-05-14'
+slug: how-r-and-python-can-work-together
+categories: []
+tags: []
+description: ''
+---
+
+
+
+<p>It may not come as a surprise to you that one can write Python codes in R studio. But wouldn’t it be super cool if a variable created in R code chunk could also be used in Python code chunk in R studio? Believe it or not, you could actually have R and Python “communicate” with each other with the help of the reticulate package.</p>
+<p>Now, I will show you one of the coolest tricks I have learned in my SDS 348 class at UT Austin.</p>
+<p>First, we can write a R code chunk that contains two strings.</p>
+<pre class="r"><code>## This is a R code chunk
+library(reticulate)
+str1 &lt;- &quot;Welcome to my&quot;
+str3 &lt;- &quot;my first blog post.&quot;</code></pre>
+<p>Then, we can create a python code chunk with another string. To access R-defined object, we can use r.</p>
+<pre class="python"><code>## This is a python code chunk
+str2 = &quot;website! This is&quot;
+print(r.str1, str2, r.str3)</code></pre>
+<pre><code>## Welcome to my website! This is my first blog post.</code></pre>
+<p>We can also access Python-defined object uisng py$</p>
+<pre class="r"><code>## This is a R code chunk
+cat(c(str1, py$str2, str3))</code></pre>
+<pre><code>## Welcome to my website! This is my first blog post.</code></pre>
