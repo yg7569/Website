@@ -1,5 +1,5 @@
 ---
-title: 'Working with genomes in Python: finding 3-mers'
+title: 'Working with genomes in Python: finding 3 mers'
 author: Yuwan Guo
 date: '2020-05-16'
 slug: working-with-genomes-in-python-finding-3-mers
@@ -12,22 +12,20 @@ description: ''
 
 <p>In bioinformatics, k-mers refer to all the possible subsequences (of length k) from a read obtained through DNA sequencing. For example, if the DNA sequencing read is “ATCATCATG”, then the 3-mers in that read include “ATC” (which occurs twice), “TCA” (which occurs twice), “CAT” (occurs twice), and “ATG” (occurs once).</p>
 <p>We can write a function in Python that takes a string of nucleotides as input and returns a dictionary with all 3-mers present in that string, and the number of times that each 3-mer occurs. The function written could be validated by finding the 3-mers in the DNA sequence my_seq1 and my_seq2 defined below.</p>
-<pre class="python"><code>my_seq1 = &quot;ATCATCATG&quot;
-my_seq2 = &quot;CAGCCCAATCAGGCTCTACTGCCACTAAACTTACGCAGGATATATTTACGCCGACGTACT&quot;
+<pre class="python"><code>mouse_histone = &quot;MARTKQTARKSTGGKAPRKQLATKAARKSAPATGGVKKPHRYRPLTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAVMALQEACEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA&quot;
+human_histone = &quot;MARTKQTARKSTGGKAPRKQLATKAQRKSARATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVTEIAQDFKTDLRFQSSAVNALQEACEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA&quot;
 
-def three_mer(sequence): #argument will be string object
-    newlist = [] #new list
-    for i in range(len(sequence)-2):
-        newlist.append(sequence[i]+sequence[i+1]+sequence[i+2])
-    counts = {} #new dict
-    for c in newlist: #for each 3-mer in sequence
-        if c in counts: #have we seen it before in this sequence?
-            counts[c]+=1 #if yes, increase count by 1
-        else:
-            counts[c]=1 #otherwise, set count
-    return counts
+def seq_identity (seq1, seq2):
+    count = 0
+    if len(seq1) == len(seq2):
+        for i in range(len(seq1)):
+            if seq1[i] == seq2[i]:
+                count += 1
+        percent = count/len(seq1)*100
+        percentstring = str(round(percent, 2))
+        print(&#39;Pairwise sequence identity is:&#39;, percentstring, &#39;%&#39;)
+    else:
+        print(&#39;ERROR: the two sequences are of different length!&#39;)
     
-print(three_mer(my_seq1))</code></pre>
-<pre><code>## {&#39;ATC&#39;: 2, &#39;TCA&#39;: 2, &#39;CAT&#39;: 2, &#39;ATG&#39;: 1}</code></pre>
-<pre class="python"><code>print(three_mer(my_seq2))</code></pre>
-<pre><code>## {&#39;CAG&#39;: 3, &#39;AGC&#39;: 1, &#39;GCC&#39;: 3, &#39;CCC&#39;: 1, &#39;CCA&#39;: 2, &#39;CAA&#39;: 1, &#39;AAT&#39;: 1, &#39;ATC&#39;: 1, &#39;TCA&#39;: 1, &#39;AGG&#39;: 2, &#39;GGC&#39;: 1, &#39;GCT&#39;: 1, &#39;CTC&#39;: 1, &#39;TCT&#39;: 1, &#39;CTA&#39;: 2, &#39;TAC&#39;: 4, &#39;ACT&#39;: 4, &#39;CTG&#39;: 1, &#39;TGC&#39;: 1, &#39;CAC&#39;: 1, &#39;TAA&#39;: 1, &#39;AAA&#39;: 1, &#39;AAC&#39;: 1, &#39;CTT&#39;: 1, &#39;TTA&#39;: 2, &#39;ACG&#39;: 3, &#39;CGC&#39;: 2, &#39;GCA&#39;: 1, &#39;GGA&#39;: 1, &#39;GAT&#39;: 1, &#39;ATA&#39;: 2, &#39;TAT&#39;: 2, &#39;ATT&#39;: 1, &#39;TTT&#39;: 1, &#39;CCG&#39;: 1, &#39;CGA&#39;: 1, &#39;GAC&#39;: 1, &#39;CGT&#39;: 1, &#39;GTA&#39;: 1}</code></pre>
+seq_identity(mouse_histone, human_histone)</code></pre>
+<pre><code>## Pairwise sequence identity is: 96.32 %</code></pre>
