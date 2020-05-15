@@ -13,6 +13,11 @@
   </url>
   
   <url>
+    <loc>/blog/test/</loc>
+    <lastmod>2020-05-15T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
     <loc>/blog/working-with-genomes-in-python-calculating-pairwise-sequence-identity/</loc>
     <lastmod>2020-05-15T00:00:00+00:00</lastmod>
   </url>

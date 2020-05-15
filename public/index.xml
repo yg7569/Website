@@ -22,6 +22,15 @@ We can write a function in Python that takes a string of nucleotides as input an
     </item>
     
     <item>
+      <title>test</title>
+      <link>/blog/test/</link>
+      <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>
+      
+      <guid>/blog/test/</guid>
+      <description>wirte sth test</description>
+    </item>
+    
+    <item>
       <title>Working with genomes in Python: calculating pairwise sequence identity</title>
       <link>/blog/working-with-genomes-in-python-calculating-pairwise-sequence-identity/</link>
       <pubDate>Fri, 15 May 2020 00:00:00 +0000</pubDate>

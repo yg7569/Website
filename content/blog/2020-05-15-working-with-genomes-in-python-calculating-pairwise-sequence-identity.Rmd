@@ -1,0 +1,43 @@
+---
+title: 'Working with genomes in Python: calculating pairwise sequence identity'
+author: Yuwan Guo
+date: '2020-05-15'
+slug: working-with-genomes-in-python-calculating-pairwise-sequence-identity
+categories: []
+tags: []
+description: ''
+---
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE, fig.align = "center", warning = F, message = F,
+tidy=TRUE, tidy.opts=list(width.cutoff=60), R.options=list(max.print=100))
+```
+
+In bioinformatics, we are often interested in determining whether or not two DNA or amino acid sequences are similar. One simple measure of similarity is called pairwise sequence identity. To calculate pairwise sequence identity, we take two sequences, count the number of positions in which both sequences share the same nucleotide or amino acid, and then divide by the total number of positions. For example, say we have these two DNA sequences: 
+
+          Position: 1 2 3 4 5 6
+        Sequence 1: A T C G T A
+        Sequence 2: A T G A G A
+    Identical(y/n): y y n n n y 
+
+There are 3 positions that match out of 6 total positions, so the sequence identity is 50% (3/6).
+
+We can write a function that calculates the pairwise sequence identity for any two sequences of the same length in Python and use the function written to calculate the pairwise sequence identity of the two amino acid sequences below.
+
+```{python}
+mouse_histone = "MARTKQTARKSTGGKAPRKQLATKAARKSAPATGGVKKPHRYRPLTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAVMALQEACEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA"
+human_histone = "MARTKQTARKSTGGKAPRKQLATKAQRKSARATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVTEIAQDFKTDLRFQSSAVNALQEACEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA"
+
+def seq_identity (seq1, seq2):
+    count = 0
+    if len(seq1) == len(seq2):
+        for i in range(len(seq1)):
+            if seq1[i] == seq2[i]:
+                count += 1
+        percent = count/len(seq1)*100
+        percentstring = str(round(percent, 2))
+        print('Pairwise sequence identity is:', percentstring, '%')
+    else:
+        print('ERROR: the two sequences are of different length!')
+    
+seq_identity(mouse_histone, human_histone)
+```
