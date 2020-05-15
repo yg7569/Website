@@ -1,7 +1,7 @@
 ---
 title: 'Working with genomes in Python: sequence cuts by restriction enzymes'
 author: Yuwan Guo
-date: '2020-05-17'
+date: '2020-05-15'
 slug: working-with-genomes-in-python-sequence-cuts-by-restriction-enzymes
 categories: []
 tags: []

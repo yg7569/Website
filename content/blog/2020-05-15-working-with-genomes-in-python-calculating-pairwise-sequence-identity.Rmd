@@ -1,7 +1,7 @@
 ---
 title: 'Working with genomes in Python: calculating pairwise sequence identity'
 author: Yuwan Guo
-date: '2020-05-15'
+date: '2020-05-13'
 slug: working-with-genomes-in-python-calculating-pairwise-sequence-identity
 categories: []
 tags: []
