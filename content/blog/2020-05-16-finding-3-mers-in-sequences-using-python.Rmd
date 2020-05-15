@@ -1,7 +1,7 @@
 ---
 title: Finding 3 mers in sequences using Python
 author: Yuwan Guo
-date: '2020-05-16'
+date: '2020-05-15'
 slug: finding-3-mers-in-sequences-using-python
 categories: []
 tags: []
