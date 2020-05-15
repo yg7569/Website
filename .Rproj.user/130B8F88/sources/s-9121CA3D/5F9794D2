@@ -1,0 +1,26 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1589498707887.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "5F9794D2",
+    "lastKnownWriteTime" : 1589509916,
+    "last_content_update" : 1589509916158,
+    "path" : "C:/Users/yg7569/Desktop/UT Austin 2019-2020 course materials/Computational bio&bioinformatics Spring 2020/week 15/Website/content/blog/2020-05-15-working-with-genomes-in-python-calculating-pairwise-sequence-identity.Rmd",
+    "project_path" : "content/blog/2020-05-15-working-with-genomes-in-python-calculating-pairwise-sequence-identity.Rmd",
+    "properties" : {
+        "cursorPosition" : "12,3",
+        "last_setup_crc32" : "9121CA3Db23e2751",
+        "scrollLine" : "0"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 10,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_markdown"
+}

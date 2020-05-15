@@ -4,7 +4,22 @@
   
   <url>
     <loc>/blog/</loc>
-    <lastmod>2020-05-14T00:00:00+00:00</lastmod>
+    <lastmod>2020-05-17T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/working-with-genomes-in-python-sequence-cuts-by-restriction-enzymes/</loc>
+    <lastmod>2020-05-17T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/working-with-genomes-in-python-finding-3-mers/</loc>
+    <lastmod>2020-05-16T00:00:00+00:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>/blog/working-with-genomes-in-python-calculating-pairwise-sequence-identity/</loc>
+    <lastmod>2020-05-15T00:00:00+00:00</lastmod>
   </url>
   
   <url>
