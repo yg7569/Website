@@ -1,5 +1,5 @@
 ---
-title: 'Working with genomes in Python: finding 3 mers'
+title: 'Working with genomes in Python: finding 3-mers'
 author: Yuwan Guo
 date: '2020-05-16'
 slug: working-with-genomes-in-python-finding-3-mers
@@ -32,9 +32,6 @@ def three_mer(sequence): #argument will be string object
             counts[c]=1 #otherwise, set count
     return counts
     
-three_mer(my_seq1)
-```
-
-```{python}
-three_mer(my_seq2)
+print(three_mer(my_seq1))
+print(three_mer(my_seq2))
 ```
