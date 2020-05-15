@@ -1,5 +1,5 @@
 ---
-title: 'Working with genomes in Python: finding 3 mers'
+title: 'Working with genomes in Python: finding 3-mers'
 author: Yuwan Guo
 date: '2020-05-14'
 slug: working-with-genomes-in-python-finding-3-mers
