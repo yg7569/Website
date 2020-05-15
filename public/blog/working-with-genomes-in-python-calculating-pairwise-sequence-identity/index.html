@@ -61,7 +61,7 @@
         </div>
         <div class="blog-title">
           <h4>
-          May 15, 2020
+          May 16, 2020
             &nbsp;&nbsp;
             
           </h4>
@@ -72,13 +72,8 @@
               
 
 
-<p>In bioinformatics, we are often interested in determining whether or not two DNA or amino acid sequences are similar. One simple measure of similarity is called pairwise sequence identity. To calculate pairwise sequence identity, we take two sequences, count the number of positions in which both sequences share the same nucleotide or amino acid, and then divide by the total number of positions. For example, say we have these two DNA sequences:</p>
-<pre><code>      Position: 1 2 3 4 5 6
-    Sequence 1: A T C G T A
-    Sequence 2: A T G A G A
-Identical(y/n): y y n n n y </code></pre>
-<p>There are 3 positions that match out of 6 total positions, so the sequence identity is 50% (3/6).</p>
-<p>We can write a function that calculates the pairwise sequence identity for any two sequences of the same length in Python and use the function written to calculate the pairwise sequence identity of the two amino acid sequences below.</p>
+<p>In bioinformatics, k-mers refer to all the possible subsequences (of length k) from a read obtained through DNA sequencing. For example, if the DNA sequencing read is “ATCATCATG”, then the 3-mers in that read include “ATC” (which occurs twice), “TCA” (which occurs twice), “CAT” (occurs twice), and “ATG” (occurs once).</p>
+<p>We can write a function in Python that takes a string of nucleotides as input and returns a dictionary with all 3-mers present in that string, and the number of times that each 3-mer occurs. The function written could be validated by finding the 3-mers in the DNA sequence my_seq1 and my_seq2 defined below.</p>
 <pre class="python"><code>mouse_histone = &quot;MARTKQTARKSTGGKAPRKQLATKAARKSAPATGGVKKPHRYRPLTVALREIRRYQKSTELLIRKLPFQRLVREIAQDFKTDLRFQSSAVMALQEACEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA&quot;
 human_histone = &quot;MARTKQTARKSTGGKAPRKQLATKAQRKSARATGGVKKPHRYRPGTVALREIRRYQKSTELLIRKLPFQRLVTEIAQDFKTDLRFQSSAVNALQEACEAYLVGLFEDTNLCAIHAKRVTIMPKDIQLARRIRGERA&quot;
 

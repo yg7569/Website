@@ -12,11 +12,11 @@
     
     
     <item>
-      <title>Working with genomes in Python: finding 3 mers</title>
-      <link>/blog/working-with-genomes-in-python-finding-3-mers/</link>
+      <title>Working with genomes in Python: calculating pairwise sequence identity</title>
+      <link>/blog/working-with-genomes-in-python-calculating-pairwise-sequence-identity/</link>
       <pubDate>Sat, 16 May 2020 00:00:00 +0000</pubDate>
       
-      <guid>/blog/working-with-genomes-in-python-finding-3-mers/</guid>
+      <guid>/blog/working-with-genomes-in-python-calculating-pairwise-sequence-identity/</guid>
       <description>In bioinformatics, k-mers refer to all the possible subsequences (of length k) from a read obtained through DNA sequencing. For example, if the DNA sequencing read is “ATCATCATG”, then the 3-mers in that read include “ATC” (which occurs twice), “TCA” (which occurs twice), “CAT” (occurs twice), and “ATG” (occurs once).
 We can write a function in Python that takes a string of nucleotides as input and returns a dictionary with all 3-mers present in that string, and the number of times that each 3-mer occurs.</description>
     </item>
